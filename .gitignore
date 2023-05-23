@@ -1,0 +1,9 @@
+# cmake build files
+cmake-build-debug
+CMakeFiles
+CMakeCache.txt
+Makefile
+*.cmake
+
+# ide generate files
+.idea
