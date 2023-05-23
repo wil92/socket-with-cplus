@@ -10,4 +10,8 @@ if (DEFINED ENV{SERVER})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSERVER")
 endif()
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 add_executable(message_test main.cpp)
+target_link_libraries(message_test PRIVATE Threads::Threads)
