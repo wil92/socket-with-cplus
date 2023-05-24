@@ -1,12 +1,9 @@
 #include <iostream>
-#include <vector>
 #include <cstring>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
-#include <pthread.h>
 
 #define BUFFER_LENGTH 20
 
@@ -21,6 +18,9 @@ bool iterate() {
 }
 
 #ifdef SERVER
+#include <pthread.h>
+#include <vector>
+
 #define LISTEN_BACKLOG 50
 #define MAX_DATA_SIZE 100
 
@@ -90,6 +90,8 @@ int main() {
     return 0;
 }
 #else
+#include <arpa/inet.h>
+
 int main() {
     std::cout << "Client started" << std::endl;
 
@@ -99,8 +101,8 @@ int main() {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(portno);
-    addr.sin_addr.s_addr = INADDR_ANY;
-//    addr.sin_addr.s_addr = inet_addr("207.180.211.97");
+//    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = inet_addr("207.180.211.97");
 
     if (connect(sockfd, (sockaddr *) &addr, sizeof(addr)) == -1) {
         handle_error("connect");
