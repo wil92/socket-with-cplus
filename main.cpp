@@ -1,21 +1,12 @@
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define BUFFER_LENGTH 20
-
 #define handle_error(msg) do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-int portno = 4333;
-
-int iteMax = 10, ite = 0;
-
-bool iterate() {
-    return ite++ < iteMax;
-}
+int portNo = 4333;
 
 #ifdef SERVER
 #include <pthread.h>
@@ -56,7 +47,7 @@ int main() {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
     // depending on the system modify the function to call (in mac is different)
-    addr.sin_port = htons(portno);
+    addr.sin_port = htons(portNo);
 
     if (bind(sockfd, (sockaddr *) &addr, sizeof(addr)) == -1) {
         handle_error("bind");
@@ -65,9 +56,6 @@ int main() {
     if (listen(sockfd, LISTEN_BACKLOG) == -1) {
         handle_error("listen");
     }
-
-//    int bufferLen = BUFFER_LENGTH;
-//    int buffer[BUFFER_LENGTH];
 
     struct sockaddr_storage addrNew{};
     std::vector<int> socks;
@@ -84,9 +72,6 @@ int main() {
         connections.push_back(newThread);
     }
 
-    for (int i = 0; i < socks.size(); ++i) {
-        close(socks[i]);
-    }
     return 0;
 }
 #else
@@ -100,7 +85,7 @@ int main() {
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(portno);
+    addr.sin_port = htons(portNo);
 //    addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_addr.s_addr = inet_addr("207.180.211.97");
 
