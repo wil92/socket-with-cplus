@@ -18,20 +18,21 @@ int portNo = 4333;
 std::vector<pthread_t> connections;
 
 void *handleConnection(void *args) {
-    int *sockFd = (int *) args;
-    std::cout << "connected to client with socket " << *sockFd << std::endl;
+    int sockFd = *(int *) args;
+    std::cout << "connected to client with socket " << sockFd << std::endl;
 
     char buff[MAX_DATA_SIZE];
     ssize_t numBytes;
     while (true) {
-        if ((numBytes = recv(*sockFd, buff, MAX_DATA_SIZE - 1, 0)) == -1) {
+        if ((numBytes = recv(sockFd, buff, MAX_DATA_SIZE - 1, 0)) == -1) {
             handle_error("receiving message");
         }
         if (numBytes == 0) {
+            std::cout << "Socket: " << sockFd << " is disconnected" << std::endl;
             break;
         }
         buff[numBytes] = '\0';
-        std::cout << "Connection: " << *sockFd << ", Message: " << buff << std::endl;
+        std::cout << "Socket: " << sockFd << ", Message: " << buff << std::endl;
     }
 
     return nullptr;
@@ -57,9 +58,9 @@ int main() {
         handle_error("listen");
     }
 
-    struct sockaddr_storage addrNew{};
     std::vector<int> socks;
     while (true) {
+        struct sockaddr_storage addrNew{};
         // accept connections
         socklen_t addrNewSize = sizeof(addrNew);
         int socknew = accept(sockfd, (sockaddr *) &addrNew, &addrNewSize);
@@ -86,8 +87,8 @@ int main() {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(portNo);
-//    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_addr.s_addr = inet_addr("207.180.211.97");
+    addr.sin_addr.s_addr = INADDR_ANY;
+//    addr.sin_addr.s_addr = inet_addr("207.180.211.97");
 
     if (connect(sockfd, (sockaddr *) &addr, sizeof(addr)) == -1) {
         handle_error("connect");
