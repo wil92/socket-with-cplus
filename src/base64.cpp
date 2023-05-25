@@ -20,7 +20,22 @@
 #include <map>
 
 struct base64 {
+private:
     constexpr static char alp[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
+
+public:
+    static char getCode(int index) {
+        return alp[index];
+    }
+
+    static int getIndex(char code) {
+        for (int i = 0; i < 64; ++i) {
+            if (code == alp[i]) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
     static void encode(const char *text, int len, char *encoded, int *resultLen) {
         *resultLen = 0;

@@ -17,6 +17,6 @@ add_executable(message_test main.cpp)
 
 include_directories(src)
 add_subdirectory(src)
-target_link_libraries(message_test base64_lib Threads::Threads)
+target_link_libraries(message_test base64_lib protocol_lib Threads::Threads)
 
 add_subdirectory(tests)

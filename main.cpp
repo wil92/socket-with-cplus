@@ -23,6 +23,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include "base64.cpp"
+#include "protocol.cpp"
 
 #define LISTEN_BACKLOG 50
 #define MAX_DATA_SIZE 100
@@ -38,6 +39,7 @@ void listeningOnPort(int port, void (*newConnection)(void *args)) {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
+//    addr.sin_addr.s_addr = inet_addr("207.180.211.97");
     // depending on the system modify the function to call (in mac is different)
     addr.sin_port = htons(port);
 
@@ -80,8 +82,16 @@ void *handleClientConnection(void *args) {
         buff[numBytes] = '\0';
         char message[MAX_DATA_SIZE];
         int messageLen;
-        base64::decode64(buff, (int) numBytes, message, &messageLen);
-        std::cout << "Socket: " << sockFd << ", Message: " << message << std::endl;
+//        base64::decode(buff, (int) numBytes, message, &messageLen);
+        in_addr_t addr;
+        in_port_t port;
+        protocol::from(&addr, &port, buff, (int) numBytes, message, &messageLen);
+        char addrMsg[20];
+//        inet_addr("207.180.211.97")
+//        inet_neta(addr, addrMsg, 0);
+        inet_ntop(AF_INET, &addr, addrMsg, sizeof(addrMsg));
+        std::cout << "Socket: " << sockFd << ", Addr:" << addrMsg << ", Port: " << port << ", Message: " << message
+                  << std::endl;
     }
 
     return nullptr;
@@ -123,7 +133,8 @@ int main() {
         char *message = "Hello world!!!";
         char buffer[100];
         int bufferLen = 0;
-        base64::encode(message, (int) strlen(message), buffer, &bufferLen);
+//        base64::encode(message, (int) strlen(message), buffer, &bufferLen);
+        protocol::to(&addr.sin_addr.s_addr, &addr.sin_port, message, (int) strlen(message), buffer, &bufferLen);
         ssize_t res = send(sockfd, buffer, bufferLen, 0);
         std::cout<<res<<std::endl;
         if (res == -1) {

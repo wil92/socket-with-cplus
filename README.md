@@ -20,12 +20,13 @@ sudo iptables -t nat -F
 
 **Message with network information**
 
-| s_addr        | sin_port      | base68::encode(message) |
+| s_addr        | sin_port      | message                 |
 |---------------|---------------|-------------------------|
-| 32 bit number | 16 bit number | message                 |
+| 32 bit number | 16 bit number | base68::encode(message) |
+| 6 bytes       | 3 bytes       | tbd                     |
 
 **Message without network information**
 
-| base68::encode(message) |
-|-------------------------|
 | message                 |
+|-------------------------|
+| base68::encode(message) |

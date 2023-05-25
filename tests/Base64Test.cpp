@@ -7,6 +7,23 @@
 
 #include <string.h>
 
+TEST (Base64Test, EncodeAndDecodeText) {
+    char text[10] = "test";
+    int textLen = strlen(text);
+
+    char result[10];
+    int resultLen;
+    char result2[10];
+
+    base64::encode(text, (int) strlen(text), result, &resultLen);
+    base64::decode(result, resultLen, result2, &resultLen);
+
+    ASSERT_EQ (textLen, resultLen);
+    for (int i = 0; text[i] != '\0'; ++i) {
+        ASSERT_EQ (text[i], result2[i]);
+    }
+}
+
 TEST (Base64Test, EncodeTextWithResidual) {
     char text[10] = "test";
     char expected[10] = "dGVzdA==";
