@@ -7,4 +7,7 @@ This is a simple project to test how socket works with C++. At the same time I'm
 ```
 # redirect all traffic to the application
 sudo iptables -t nat -A OUTPUT -j REDIRECT -p tcp --to-port 4333
+
+# clear iptables
+sudo iptables -t nat -F
 ```
