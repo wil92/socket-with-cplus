@@ -6,6 +6,7 @@
 #include <linux/netfilter_ipv4.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include "base64.cpp"
 
 #define LISTEN_BACKLOG 50
 #define MAX_DATA_SIZE 100
@@ -13,9 +14,8 @@
 #define handle_error(msg) do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 int serverPortNo = 4332;
-int clientPortNo = 4333;
 
-void listeningOnPort(int port, void *args, void (*newConnection)(void *args)) {
+void listeningOnPort(int port, void (*newConnection)(void *args)) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in addr{};
@@ -41,9 +41,7 @@ void listeningOnPort(int port, void *args, void (*newConnection)(void *args)) {
         if (socknew == -1) {
             handle_error("accept");
         }
-        void *passThrow = &socknew;
-        (((int*)args) + 1) = args;
-        newConnection(passThrow);
+        newConnection(&socknew);
     }
 }
 
@@ -64,15 +62,18 @@ void *handleClientConnection(void *args) {
             break;
         }
         buff[numBytes] = '\0';
-        std::cout << "Socket: " << sockFd << ", Message: " << buff << std::endl;
+        char message[MAX_DATA_SIZE];
+        int messageLen;
+        base64::decode64(buff, (int) numBytes, message, &messageLen);
+        std::cout << "Socket: " << sockFd << ", Message: " << message << std::endl;
     }
 
     return nullptr;
 }
 
-void createNewConnectionThread(int *sockfd) {
+void createNewConnectionThread(void *args) {
     pthread_t newThread = pthread_t();
-    pthread_create(&newThread, nullptr, &handleClientConnection, sockfd);
+    pthread_create(&newThread, nullptr, &handleClientConnection, args);
 }
 
 int main() {
@@ -85,55 +86,12 @@ int main() {
 
 #else
 
-void getAddrDest(int fd, struct sockaddr_in *dest) {
-    socklen_t destLen = sizeof(*dest);
-    if (getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, dest, &destLen) == -1) {
-        std::cout << "Error with getAddrDest" << std::endl;
-    }
-    char ip[30];
-    inet_ntop(AF_INET, &dest->sin_addr.s_addr, ip, sizeof(ip));
-    std::cout << "-----------------------" << std::endl;
-    std::cout << ip << std::endl;
-    std::cout << ntohs(dest->sin_port) << std::endl;
-    std::cout << "-----------------------" << std::endl;
-}
-
-void *handleConnection(void *args) {
-    int sockFd = *(int *) args;
-    std::cout << "connected to client with socket " << sockFd << std::endl;
-
-    sockaddr_in originalDest = sockaddr_in();
-    getAddrDest(sockFd, &originalDest);
-
-    char buff[MAX_DATA_SIZE];
-    ssize_t numBytes;
-    while (true) {
-        if ((numBytes = recv(sockFd, buff, MAX_DATA_SIZE - 1, 0)) == -1) {
-            handle_error("receiving message");
-        }
-        if (numBytes == 0) {
-            std::cout << "Socket: " << sockFd << " is disconnected" << std::endl;
-            break;
-        }
-        buff[numBytes] = '\0';
-        std::cout << "Socket: " << sockFd << ", Message: " << buff << std::endl;
-    }
-
-    return nullptr;
-}
-
-void createNewConnectionThread(void *args) {
-    int *sockFd = (int *)args;
-    pthread_t newThread = pthread_t();
-    pthread_create(&newThread, nullptr, &handleConnection, sockFd);
-}
-
 int main() {
     std::cout << "Client started" << std::endl;
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    struct sockaddr_in addr;
+    struct sockaddr_in addr{};
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(serverPortNo);
@@ -144,19 +102,19 @@ int main() {
         handle_error("connect");
     }
 
-    listeningOnPort(clientPortNo, NULL, createNewConnectionThread);
-
-//    while (true)
-//    {
-//        char* buffer = "Hello world!!!";
-//        size_t bufferSize = strlen(buffer);
-//        ssize_t res = send(sockfd, buffer, bufferSize, 0);
-//        std::cout<<res<<std::endl;
-//        if (res == -1) {
-//            handle_error("recv");
-//        }
-//        std::cout<<buffer<<std::endl;
-//        sleep(1);
-//    }
+    while (true)
+    {
+        char *message = "Hello world!!!";
+        char buffer[100];
+        int bufferLen = 0;
+        base64::encode(message, (int) strlen(message), buffer, &bufferLen);
+        ssize_t res = send(sockfd, buffer, bufferLen, 0);
+        std::cout<<res<<std::endl;
+        if (res == -1) {
+            handle_error("recv");
+        }
+        std::cout<<buffer<<std::endl;
+        sleep(1);
+    }
 }
 #endif
