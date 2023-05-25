@@ -21,7 +21,7 @@
 
 struct base64 {
 private:
-    constexpr static char alp[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
+    constexpr static char alp[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 public:
     static char getCode(int index) {
